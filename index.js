@@ -61,8 +61,14 @@ async function run() {
     })
 
     app.get('/bids/:email', async (req, res) => {
+      const isBuyer = req.query.buyer;
       const email = req.params.email;
-      const query = {email}
+      let query = {}
+      if(isBuyer){ 
+        query.buyer = email
+      } else{
+        query.email = email
+      }
       const result = await bidCollection.find(query).toArray()
       res.send(result);
     })
@@ -102,6 +108,19 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await jobCollection.findOne(query);
       res.send(result);
+    })
+
+    app.patch('/bid-status-update/:id', async (req, res) =>{
+      const id = req.params.id;
+      const {status} = req.body;
+      const filter = {_id : new ObjectId(id)}
+      const updated = {
+        $set : {
+          status
+        }
+      }
+      const result = await bidCollection.updateOne(filter, updated);
+      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
