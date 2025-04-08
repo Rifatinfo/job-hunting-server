@@ -54,12 +54,17 @@ async function run() {
       const result = await jobCollection.deleteOne(query)
       res.send(result)
     })
-    // app.get('/update/:id', async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const result = await jobCollection.findOne(query);
-    //   res.send(result);
-    // })
+    app.put('/update-job/:id', async (req, res) =>{
+      const id = req.params.id
+      const jobData = req.body;
+      const query = {_id : new ObjectId(id)}
+      const options = {upsert : true}
+      const updated = {
+        $set : jobData
+      }
+      const result = await jobCollection.updateOne(query, updated, options)
+      res.send(result)
+    })
     app.get('/job/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
