@@ -28,17 +28,49 @@ async function run() {
 
     const db = client.db("soloSphere")
     const jobCollection = db.collection("jobs");
+    const bidCollection = db.collection("bids");
 
     app.post('/add-job', async (req, res) =>{
       const jobData = req.body;
       console.log((jobData));
       const result = await jobCollection.insertOne(jobData)
-      res.send(result)
+      res.send(result);
+    })
+
+    app.post('/add-bid', async (req, res) => {
+      const bidData = req.body;
+      console.log(bidData);
+      
+      const query = {email : bidData.email, jobId : bidData.jobId}
+      const alreadyExist = await bidCollection.findOne(query);
+      if(alreadyExist) return res.status(404).send('you already bid Now');
+      const result = await bidCollection.insertOne(bidData);
+      const filter = {_id : new ObjectId(bidData.jobId)}
+      const update =  {
+        $inc : {
+          bid_count : 1
+        }
+      } 
+      const bidCountUpdate = await bidCollection.updateOne(filter, update);
+      res.send(result, bidCollection);
     })
 
     app.get('/jobs', async (req, res) =>{
       const result = await jobCollection.find().toArray();
       res.send(result)
+    })
+
+    app.get('/bids/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = {email}
+      const result = await bidCollection.find(query).toArray()
+      res.send(result);
+    })
+    app.get('/bids-request/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = {buyer : email}
+      const result = await bidCollection.find(query).toArray()
+      res.send(result);
     })
 
     app.get('/jobs/:email' , async (req, res) =>{
