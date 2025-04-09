@@ -122,6 +122,32 @@ async function run() {
       const result = await bidCollection.updateOne(filter, updated);
       res.send(result)
     })
+    app.get('/all-jobs', async (req, res) => {
+      const filter = req.query.filter;
+      const search = req.query.search;
+    
+      let query = {};
+    
+      // Add category filter if present
+      if (filter) {
+        query.category = filter;
+      }
+    
+      // Add search filter if present
+      if (search) {
+        query.title = { $regex: search, $options: 'i' }; // Case-insensitive match on title
+      }
+    
+      try {
+        const result = await jobCollection.find(query).toArray();
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: 'Failed to fetch jobs' });
+      }
+    });
+    
+    
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
